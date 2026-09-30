@@ -367,14 +367,54 @@ body{font-size:14px}
   .plan-zero-flow i{display:none}
 }
 
-/* Keep the overdue-only filter readable when the task toolbar gets tight. */
+/* Task toolbar layout: keep controls stable instead of squeezing everything into one row. */
+.plan-task-section .task-commandbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:10px;
+  align-items:stretch;
+}
+.plan-task-section .search-box{
+  width:100%;
+  min-width:0;
+}
+.plan-task-section .filter-group{
+  display:grid;
+  grid-template-columns:minmax(110px,1fr) minmax(135px,1.15fr) minmax(110px,1fr) minmax(90px,.75fr) minmax(135px,1.15fr);
+  gap:8px;
+  width:100%;
+  min-width:0;
+}
+.plan-task-section .filter-group select,
 .plan-task-section .check-filter{
-  flex:0 0 auto;
-  min-width:76px;
-  white-space:nowrap;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+.plan-task-section .check-filter{
+  padding:0 10px;
   justify-content:center;
+  white-space:nowrap;
 }
 .plan-task-section .check-filter span{
   white-space:nowrap;
   word-break:keep-all;
+}
+
+@media(max-width:900px){
+  .plan-task-section .filter-group{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .plan-task-section #sortSelect{
+    grid-column:1/-1;
+  }
+}
+
+@media(max-width:560px){
+  .plan-task-section .filter-group{
+    grid-template-columns:1fr;
+  }
+  .plan-task-section #sortSelect{
+    grid-column:auto;
+  }
 }
