@@ -1,0 +1,381 @@
+{
+  "contract": "pds-schema-v2",
+  "title": "PlanDoSee data contract",
+  "storage": {
+    "database": "PostgreSQL",
+    "server": "Vercel Functions",
+    "frontend": "Vanilla HTML/CSS/JavaScript",
+    "duration_unit": "minute",
+    "timestamp_storage": "UTC timestamptz",
+    "display_timezone": "Asia/Seoul",
+    "date_rule": "date-only values use PostgreSQL DATE; overdue is due_date < today in Asia/Seoul",
+    "provider": "Supabase PostgreSQL",
+    "connection": "Vercel Functions use server-only DATABASE_URL via Supabase transaction pooler"
+  },
+  "tables": {
+    "plans": {
+      "purpose": "계획의 고정 식별자와 현재 버전, 이전 돌아보기 연결을 보관한다.",
+      "primary_key": [
+        "id"
+      ],
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "current_version_no": {
+          "type": "integer",
+          "nullable": false,
+          "default": 1
+        },
+        "source_review_id": {
+          "type": "uuid",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "plan_versions": {
+      "purpose": "계획 수정 전/후 내용을 버전별로 보존한다.",
+      "primary_key": [
+        "id"
+      ],
+      "unique": [
+        [
+          "plan_id",
+          "version_no"
+        ]
+      ],
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "plan_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "version_no": {
+          "type": "integer",
+          "nullable": false
+        },
+        "title": {
+          "type": "text",
+          "nullable": false
+        },
+        "start_date": {
+          "type": "date",
+          "nullable": false
+        },
+        "end_date": {
+          "type": "date",
+          "nullable": false
+        },
+        "priority": {
+          "type": "text",
+          "nullable": false,
+          "allowed": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "success_criteria": {
+          "type": "text",
+          "nullable": false
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "nullable": false,
+          "minimum": 0
+        },
+        "carried_improvement": {
+          "type": "text",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "tasks": {
+      "purpose": "계획에 속한 할 일과 현재 상태를 보관한다. 삭제는 soft delete로 처리한다.",
+      "primary_key": [
+        "id"
+      ],
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "plan_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "title": {
+          "type": "text",
+          "nullable": false
+        },
+        "description": {
+          "type": "text",
+          "nullable": true
+        },
+        "due_date": {
+          "type": "date",
+          "nullable": false
+        },
+        "priority": {
+          "type": "text",
+          "nullable": false,
+          "allowed": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "tag": {
+          "type": "text",
+          "nullable": true
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "nullable": false,
+          "minimum": 0
+        },
+        "status": {
+          "type": "text",
+          "nullable": false,
+          "allowed": [
+            "in_progress",
+            "done"
+          ],
+          "default": "in_progress"
+        },
+        "status_version": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "deleted_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "task_status_events": {
+      "purpose": "완료/되돌리기 상태 변화를 기록하고 중복 완료 기록을 방지한다.",
+      "primary_key": [
+        "id"
+      ],
+      "unique": [
+        [
+          "task_id",
+          "status_version"
+        ]
+      ],
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "task_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "status_version": {
+          "type": "integer",
+          "nullable": false
+        },
+        "from_status": {
+          "type": "text",
+          "nullable": false
+        },
+        "to_status": {
+          "type": "text",
+          "nullable": false
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "execution_logs": {
+      "purpose": "실제로 한 일의 시작/종료/실제 소요 시간/막힌 이유를 할 일과 분리해 저장한다.",
+      "primary_key": [
+        "id"
+      ],
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "task_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "started_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "ended_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "actual_minutes": {
+          "type": "integer",
+          "nullable": false,
+          "minimum": 0
+        },
+        "blocker_reason": {
+          "type": "text",
+          "nullable": true
+        },
+        "created_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    },
+    "reviews": {
+      "purpose": "See 화면의 집계 스냅샷과 다음 계획으로 넘길 고칠 점 한 건을 저장한다.",
+      "primary_key": [
+        "id"
+      ],
+      "unique": [
+        [
+          "plan_id"
+        ]
+      ],
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "plan_id": {
+          "type": "uuid",
+          "nullable": false
+        },
+        "task_count": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "completed_count": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "delayed_count": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "blocked_count": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "actual_minutes": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "delta_minutes": {
+          "type": "integer",
+          "nullable": false,
+          "default": 0
+        },
+        "improvement_text": {
+          "type": "text",
+          "nullable": true
+        },
+        "calculated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "updated_at": {
+          "type": "timestamptz",
+          "nullable": false
+        }
+      }
+    }
+  },
+  "relationships": [
+    {
+      "from": "plan_versions.plan_id",
+      "to": "plans.id",
+      "cardinality": "many-to-one",
+      "on_delete": "cascade"
+    },
+    {
+      "from": "tasks.plan_id",
+      "to": "plans.id",
+      "cardinality": "many-to-one",
+      "on_delete": "cascade"
+    },
+    {
+      "from": "task_status_events.task_id",
+      "to": "tasks.id",
+      "cardinality": "many-to-one",
+      "on_delete": "cascade"
+    },
+    {
+      "from": "execution_logs.task_id",
+      "to": "tasks.id",
+      "cardinality": "many-to-one",
+      "on_delete": "cascade"
+    },
+    {
+      "from": "reviews.plan_id",
+      "to": "plans.id",
+      "cardinality": "one-to-one",
+      "on_delete": "cascade"
+    },
+    {
+      "from": "plans.source_review_id",
+      "to": "reviews.id",
+      "cardinality": "many-to-one",
+      "on_delete": "set null"
+    }
+  ],
+  "aggregation_rules": {
+    "task_count": "count tasks where plan_id = target and deleted_at is null",
+    "completed_count": "count non-deleted tasks where status = 'done'",
+    "delayed_count": "count non-deleted tasks where status != 'done' and due_date < current date in Asia/Seoul",
+    "blocked_count": "count distinct non-deleted tasks having at least one execution_log with non-empty blocker_reason",
+    "estimated_minutes": "sum estimated_minutes of non-deleted tasks; empty set = 0",
+    "actual_minutes": "sum execution_logs.actual_minutes belonging to non-deleted target tasks; empty set = 0",
+    "delta_minutes": "actual_minutes - estimated_minutes"
+  },
+  "integrity_rules": [
+    "Plan update inserts a new plan_versions row and never overwrites an older version.",
+    "Task completion is processed in a transaction that locks the task row; if already done it is a no-op.",
+    "Every status transition increments tasks.status_version and task_status_events enforces UNIQUE(task_id, status_version).",
+    "Execution log creation never updates plan_versions.estimated_minutes or tasks.estimated_minutes.",
+    "All durations are stored and returned in integer minutes.",
+    "User-authored text is rendered as text, never inserted through raw innerHTML.",
+    "Supabase anon/authenticated roles have no direct table privileges; browser access goes through Vercel Functions only."
+  ]
+}
