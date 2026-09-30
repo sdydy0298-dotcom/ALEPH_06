@@ -366,3 +366,15 @@ body{font-size:14px}
   .plan-zero-flow{display:grid;grid-template-columns:1fr 1fr;width:100%}
   .plan-zero-flow i{display:none}
 }
+
+/* Keep the overdue-only filter readable when the task toolbar gets tight. */
+.plan-task-section .check-filter{
+  flex:0 0 auto;
+  min-width:76px;
+  white-space:nowrap;
+  justify-content:center;
+}
+.plan-task-section .check-filter span{
+  white-space:nowrap;
+  word-break:keep-all;
+}
